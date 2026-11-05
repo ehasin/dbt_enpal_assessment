@@ -1,0 +1,79 @@
+check_name,layer,month,severity,expected_value,actual_value,status,detail
+accepted_plus_review_balances,core,,fail,19985.0,19985.0,pass,"Accepted plus flagged rows against ods_ rows, deal changes and activities together"
+exact_duplicates_in_raw,ods,,warn,21789.0,21789.0,pass,Raw rows against rows after exact-row dedup. The reports stay correct either way
+funnel_steps_complete,seed,,fail,11.0,11.0,pass,"Funnel steps in the seed that match the required list, name and number"
+raw_tables_loaded,raw,,fail,6.0,6.0,pass,All tables have rows
+sales_call_acceptance_rate,core,,fail,0.95,0.9938,pass,"Accepted share of sales call rows, against the lowest allowed share"
+stage_row_acceptance_rate,core,,fail,0.95,0.9948,pass,"Accepted share of stage rows, against the lowest allowed share"
+unmapped_activity_type,seed,,fail,0.0,0.0,pass,"0 activities of an unknown type, 0 call steps with no activity type"
+unmapped_stage,seed,,fail,0.0,0.0,pass,Stage rows whose stage has no funnel step
+accepted_data_in_every_month,core,2024-01-01,fail,2.0,2.0,pass,"Sources with rows this month, against sources with accepted rows this month"
+activity_coverage,ods,2024-01-01,warn,,287.0,pass,Observed activity records until 2024-09-13.
+call_steps_reconcile,core,2024-01-01,fail,142.0,142.0,pass,0 call counts differ from the recount
+stage_coverage,ods,2024-01-01,warn,,37.0,pass,Observed stage records until 2025-02-24.
+stage_steps_reconcile,core,2024-01-01,fail,38.0,38.0,pass,0 stage counts differ from the recount
+accepted_data_in_every_month,core,2024-02-01,fail,2.0,2.0,pass,"Sources with rows this month, against sources with accepted rows this month"
+activity_coverage,ods,2024-02-01,warn,,234.0,pass,Observed activity records until 2024-09-13.
+call_steps_reconcile,core,2024-02-01,fail,123.0,123.0,pass,0 call counts differ from the recount
+stage_coverage,ods,2024-02-01,warn,,333.0,pass,Observed stage records until 2025-02-24.
+stage_steps_reconcile,core,2024-02-01,fail,404.0,404.0,pass,0 stage counts differ from the recount
+accepted_data_in_every_month,core,2024-03-01,fail,2.0,2.0,pass,"Sources with rows this month, against sources with accepted rows this month"
+activity_coverage,ods,2024-03-01,warn,,273.0,pass,Observed activity records until 2024-09-13.
+call_steps_reconcile,core,2024-03-01,fail,129.0,129.0,pass,0 call counts differ from the recount
+stage_coverage,ods,2024-03-01,warn,,692.0,pass,Observed stage records until 2025-02-24.
+stage_steps_reconcile,core,2024-03-01,fail,967.0,967.0,pass,0 stage counts differ from the recount
+accepted_data_in_every_month,core,2024-04-01,fail,2.0,2.0,pass,"Sources with rows this month, against sources with accepted rows this month"
+activity_coverage,ods,2024-04-01,warn,,257.0,pass,Observed activity records until 2024-09-13.
+call_steps_reconcile,core,2024-04-01,fail,127.0,127.0,pass,0 call counts differ from the recount
+stage_coverage,ods,2024-04-01,warn,,870.0,pass,Observed stage records until 2025-02-24.
+stage_steps_reconcile,core,2024-04-01,fail,1267.0,1267.0,pass,0 stage counts differ from the recount
+accepted_data_in_every_month,core,2024-05-01,fail,2.0,2.0,pass,"Sources with rows this month, against sources with accepted rows this month"
+activity_coverage,ods,2024-05-01,warn,,254.0,pass,Observed activity records until 2024-09-13.
+call_steps_reconcile,core,2024-05-01,fail,126.0,126.0,pass,0 call counts differ from the recount
+stage_coverage,ods,2024-05-01,warn,,1011.0,pass,Observed stage records until 2025-02-24.
+stage_steps_reconcile,core,2024-05-01,fail,1471.0,1471.0,pass,0 stage counts differ from the recount
+accepted_data_in_every_month,core,2024-06-01,fail,2.0,2.0,pass,"Sources with rows this month, against sources with accepted rows this month"
+activity_coverage,ods,2024-06-01,warn,,268.0,pass,Observed activity records until 2024-09-13.
+call_steps_reconcile,core,2024-06-01,fail,130.0,130.0,pass,0 call counts differ from the recount
+stage_coverage,ods,2024-06-01,warn,,1108.0,pass,Observed stage records until 2025-02-24.
+stage_steps_reconcile,core,2024-06-01,fail,1635.0,1635.0,pass,0 stage counts differ from the recount
+accepted_data_in_every_month,core,2024-07-01,fail,2.0,2.0,pass,"Sources with rows this month, against sources with accepted rows this month"
+activity_coverage,ods,2024-07-01,warn,,300.0,pass,Observed activity records until 2024-09-13.
+call_steps_reconcile,core,2024-07-01,fail,153.0,153.0,pass,0 call counts differ from the recount
+stage_coverage,ods,2024-07-01,warn,,1137.0,pass,Observed stage records until 2025-02-24.
+stage_steps_reconcile,core,2024-07-01,fail,1668.0,1668.0,pass,0 stage counts differ from the recount
+accepted_data_in_every_month,core,2024-08-01,fail,2.0,2.0,pass,"Sources with rows this month, against sources with accepted rows this month"
+activity_coverage,ods,2024-08-01,warn,,270.0,pass,Observed activity records until 2024-09-13.
+call_steps_reconcile,core,2024-08-01,fail,128.0,128.0,pass,0 call counts differ from the recount
+stage_coverage,ods,2024-08-01,warn,,1150.0,pass,Observed stage records until 2025-02-24.
+stage_steps_reconcile,core,2024-08-01,fail,1660.0,1660.0,pass,0 stage counts differ from the recount
+accepted_data_in_every_month,core,2024-09-01,fail,2.0,2.0,pass,"Sources with rows this month, against sources with accepted rows this month"
+activity_coverage,ods,2024-09-01,warn,,126.0,warn,Observed activity records until 2024-09-13. Later months may be incomplete.
+call_steps_reconcile,core,2024-09-01,fail,65.0,65.0,pass,0 call counts differ from the recount
+stage_coverage,ods,2024-09-01,warn,,1017.0,pass,Observed stage records until 2025-02-24.
+stage_steps_reconcile,core,2024-09-01,fail,1479.0,1479.0,pass,0 stage counts differ from the recount
+accepted_data_in_every_month,core,2024-10-01,fail,1.0,1.0,pass,"Sources with rows this month, against sources with accepted rows this month"
+activity_coverage,ods,2024-10-01,warn,,0.0,warn,Observed activity records until 2024-09-13. Later months may be incomplete.
+call_steps_reconcile,core,2024-10-01,fail,0.0,0.0,pass,0 call counts differ from the recount
+stage_coverage,ods,2024-10-01,warn,,867.0,pass,Observed stage records until 2025-02-24.
+stage_steps_reconcile,core,2024-10-01,fail,1296.0,1296.0,pass,0 stage counts differ from the recount
+accepted_data_in_every_month,core,2024-11-01,fail,1.0,1.0,pass,"Sources with rows this month, against sources with accepted rows this month"
+activity_coverage,ods,2024-11-01,warn,,0.0,warn,Observed activity records until 2024-09-13. Later months may be incomplete.
+call_steps_reconcile,core,2024-11-01,fail,0.0,0.0,pass,0 call counts differ from the recount
+stage_coverage,ods,2024-11-01,warn,,457.0,pass,Observed stage records until 2025-02-24.
+stage_steps_reconcile,core,2024-11-01,fail,737.0,737.0,pass,0 stage counts differ from the recount
+accepted_data_in_every_month,core,2024-12-01,fail,1.0,1.0,pass,"Sources with rows this month, against sources with accepted rows this month"
+activity_coverage,ods,2024-12-01,warn,,0.0,warn,Observed activity records until 2024-09-13. Later months may be incomplete.
+call_steps_reconcile,core,2024-12-01,fail,0.0,0.0,pass,0 call counts differ from the recount
+stage_coverage,ods,2024-12-01,warn,,175.0,pass,Observed stage records until 2025-02-24.
+stage_steps_reconcile,core,2024-12-01,fail,289.0,289.0,pass,0 stage counts differ from the recount
+accepted_data_in_every_month,core,2025-01-01,fail,1.0,1.0,pass,"Sources with rows this month, against sources with accepted rows this month"
+activity_coverage,ods,2025-01-01,warn,,0.0,warn,Observed activity records until 2024-09-13. Later months may be incomplete.
+call_steps_reconcile,core,2025-01-01,fail,0.0,0.0,pass,0 call counts differ from the recount
+stage_coverage,ods,2025-01-01,warn,,47.0,pass,Observed stage records until 2025-02-24.
+stage_steps_reconcile,core,2025-01-01,fail,82.0,82.0,pass,0 stage counts differ from the recount
+accepted_data_in_every_month,core,2025-02-01,fail,1.0,1.0,pass,"Sources with rows this month, against sources with accepted rows this month"
+activity_coverage,ods,2025-02-01,warn,,0.0,warn,Observed activity records until 2024-09-13. Later months may be incomplete.
+call_steps_reconcile,core,2025-02-01,fail,0.0,0.0,pass,0 call counts differ from the recount
+stage_coverage,ods,2025-02-01,warn,,5.0,warn,Observed stage records until 2025-02-24. Later months may be incomplete.
+stage_steps_reconcile,core,2025-02-01,fail,10.0,10.0,pass,0 stage counts differ from the recount
