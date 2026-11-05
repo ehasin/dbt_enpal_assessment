@@ -1,0 +1,25 @@
+version: 2
+
+seeds:
+  - name: funnel_steps
+    description: >
+      The report's 11 steps, in the required order and wording. Stage steps carry their stage. Call steps
+      have no stage: they match the name in `activity_types`.
+    config:
+      column_types:
+        step_order: integer
+        funnel_step: text
+        kpi_name: text
+        stage_id: integer
+    columns:
+      - name: step_order
+        description: Step position in the required order.
+        data_tests: [not_null, unique]
+      - name: funnel_step
+        description: Step number, such as Step 2.1.
+        data_tests: [not_null, unique]
+      - name: kpi_name
+        description: Required step name.
+        data_tests: [not_null, unique]
+      - name: stage_id
+        description: Stage that feeds the step. Empty on call steps.

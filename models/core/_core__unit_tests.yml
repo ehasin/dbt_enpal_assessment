@@ -1,0 +1,311 @@
+version: 2
+
+# Each test proves one rule, including rules this data never triggers.
+unit_tests:
+  - name: deal_created_twice_flags_all_its_rows
+    model: fct_deal_change
+    given:
+      - input: ref('ods_pipedrive__deal_changes')
+        rows:
+          - {deal_id: 1, changed_field: add_time, changed_at: "2024-01-01 10:00:00", new_value: "2024-01-01"}
+          - {deal_id: 2, changed_field: add_time, changed_at: "2024-01-01 10:00:00", new_value: "2024-01-01"}
+          - {deal_id: 2, changed_field: add_time, changed_at: "2024-02-01 10:00:00", new_value: "2024-02-01"}
+          - {deal_id: 2, changed_field: stage_id, changed_at: "2024-02-02 10:00:00", new_value: "1"}
+    expect:
+      rows:
+        - {deal_id: 1, changed_field: add_time, dq_reason: null}
+        - {deal_id: 2, changed_field: add_time, dq_reason: multiple_deal_creations}
+        - {deal_id: 2, changed_field: add_time, dq_reason: multiple_deal_creations}
+        - {deal_id: 2, changed_field: stage_id, dq_reason: multiple_deal_creations}
+
+  - name: two_stages_on_one_timestamp_stay_separate_accepted_rows
+    model: fct_deal_change
+    given:
+      - input: ref('ods_pipedrive__deal_changes')
+        rows:
+          - {deal_id: 1, changed_field: stage_id, changed_at: "2024-01-01 10:00:00", new_value: "2"}
+          - {deal_id: 1, changed_field: stage_id, changed_at: "2024-01-01 10:00:00", new_value: "5"}
+    expect:
+      rows:
+        - {deal_id: 1, new_value: "2", dq_reason: null}
+        - {deal_id: 1, new_value: "5", dq_reason: null}
+
+  - name: repeated_activity_id_flags_both_rows
+    model: fct_activity
+    given:
+      - input: ref('ods_pipedrive__activity')
+        rows:
+          - {activity_id: 10, activity_type: meeting, deal_id: 1, is_done: true, due_at: "2024-01-15 10:00:00"}
+          - {activity_id: 11, activity_type: meeting, deal_id: 2, is_done: true, due_at: "2024-01-15 10:00:00"}
+          - {activity_id: 11, activity_type: sc_2, deal_id: 3, is_done: false, due_at: "2024-02-15 10:00:00"}
+      - input: ref('dim_deal')
+        rows:
+          - {deal_id: 1}
+    expect:
+      rows:
+        - {activity_id: 10, due_month: 2024-01-01, has_deal_history: true, dq_reason: null}
+        - {activity_id: 11, due_month: 2024-01-01, has_deal_history: false, dq_reason: duplicate_activity_id}
+        - {activity_id: 11, due_month: 2024-02-01, has_deal_history: false, dq_reason: duplicate_activity_id}
+
+  - name: deal_takes_latest_owner_and_stage_and_status_from_lost_reason
+    model: dim_deal
+    given:
+      - input: ref('fct_deal_change')
+        rows:
+          - {deal_id: 1, changed_field: add_time, changed_at: "2024-01-01 10:00:00", new_value: "2024-01-01"}
+          - {deal_id: 1, changed_field: user_id, changed_at: "2024-01-02 10:00:00", new_value: "7"}
+          - {deal_id: 1, changed_field: user_id, changed_at: "2024-01-03 10:00:00", new_value: "8"}
+          - {deal_id: 1, changed_field: stage_id, changed_at: "2024-01-04 10:00:00", new_value: "1"}
+          - {deal_id: 1, changed_field: stage_id, changed_at: "2024-01-05 10:00:00", new_value: "3"}
+          - {deal_id: 1, changed_field: stage_id, changed_at: "2024-01-06 10:00:00", new_value: "2"}
+          - {deal_id: 1, changed_field: lost_reason, changed_at: "2024-01-07 10:00:00", new_value: "4"}
+          - {deal_id: 1, changed_field: lost_reason, changed_at: "2024-01-08 10:00:00", new_value: "5"}
+          - {deal_id: 2, changed_field: add_time, changed_at: "2024-01-01 10:00:00", new_value: "2024-01-01"}
+          - {deal_id: 3, changed_field: add_time, changed_at: "2024-01-01 10:00:00", new_value: "2024-01-01", dq_reason: multiple_deal_creations}
+      - input: ref('dim_deal_owner')
+        rows:
+          - {deal_id: 1, owner_user_id: 7, is_current: false}
+          - {deal_id: 1, owner_user_id: 8, is_current: true}
+      - input: ref('ods_pipedrive__fields')
+        rows:
+          - {field_key: lost_reason, field_value_options: '[{"id": "4", "label": "Price"}, {"id": "5", "label": "Other"}]'}
+    expect:
+      rows:
+        - {deal_id: 1, current_stage_id: 2, max_stage_id: 3, owner_user_id: 8, deal_status: lost, lost_at: "2024-01-07 10:00:00", lost_reason: Price}
+        - {deal_id: 2, current_stage_id: null, max_stage_id: null, owner_user_id: null, deal_status: open, lost_at: null, lost_reason: null}
+
+  - name: tied_stage_rows_leave_the_highest_stage_as_current
+    model: dim_deal
+    given:
+      - input: ref('fct_deal_change')
+        rows:
+          - {deal_id: 1, changed_field: stage_id, changed_at: "2024-01-01 10:00:00", new_value: "5"}
+          - {deal_id: 1, changed_field: stage_id, changed_at: "2024-01-01 10:00:00", new_value: "2"}
+      - input: ref('dim_deal_owner')
+        rows: []
+      - input: ref('ods_pipedrive__fields')
+        rows: []
+    expect:
+      rows:
+        - {deal_id: 1, current_stage_id: 5}
+
+  - name: owner_changes_become_dated_periods_and_flagged_rows_stay_out
+    model: dim_deal_owner
+    given:
+      - input: ref('fct_deal_change')
+        rows:
+          - {deal_id: 1, changed_field: user_id, changed_at: "2024-01-02 10:00:00", new_value: "7"}
+          - {deal_id: 1, changed_field: user_id, changed_at: "2024-01-05 10:00:00", new_value: "8"}
+          - {deal_id: 1, changed_field: stage_id, changed_at: "2024-01-06 10:00:00", new_value: "1"}
+          - {deal_id: 2, changed_field: user_id, changed_at: "2024-01-03 10:00:00", new_value: "9"}
+          - {deal_id: 3, changed_field: user_id, changed_at: "2024-01-04 10:00:00", new_value: "9", dq_reason: multiple_deal_creations}
+    expect:
+      rows:
+        - {deal_id: 1, owner_user_id: 7, valid_from: "2024-01-02 10:00:00", valid_to: "2024-01-05 10:00:00", is_current: false}
+        - {deal_id: 1, owner_user_id: 8, valid_from: "2024-01-05 10:00:00", valid_to: null, is_current: true}
+        - {deal_id: 2, owner_user_id: 9, valid_from: "2024-01-03 10:00:00", valid_to: null, is_current: true}
+
+  - name: repeated_owner_stays_one_period_returning_owner_starts_new
+    model: dim_deal_owner
+    given:
+      - input: ref('fct_deal_change')
+        rows:
+          - {deal_id: 1, changed_field: user_id, changed_at: "2024-01-01 10:00:00", new_value: "7"}
+          - {deal_id: 1, changed_field: user_id, changed_at: "2024-01-02 10:00:00", new_value: "7"}
+          - {deal_id: 1, changed_field: user_id, changed_at: "2024-01-03 10:00:00", new_value: "8"}
+          - {deal_id: 1, changed_field: user_id, changed_at: "2024-01-04 10:00:00", new_value: "7"}
+    expect:
+      rows:
+        - {deal_id: 1, owner_user_id: 7, valid_from: "2024-01-01 10:00:00", valid_to: "2024-01-03 10:00:00", is_current: false}
+        - {deal_id: 1, owner_user_id: 8, valid_from: "2024-01-03 10:00:00", valid_to: "2024-01-04 10:00:00", is_current: false}
+        - {deal_id: 1, owner_user_id: 7, valid_from: "2024-01-04 10:00:00", valid_to: null, is_current: true}
+
+  - name: tied_owner_rows_leave_the_highest_id
+    model: dim_deal_owner
+    given:
+      - input: ref('fct_deal_change')
+        rows:
+          - {deal_id: 1, changed_field: user_id, changed_at: "2024-01-01 10:00:00", new_value: "7"}
+          - {deal_id: 1, changed_field: user_id, changed_at: "2024-01-01 10:00:00", new_value: "8"}
+    expect:
+      rows:
+        - {deal_id: 1, owner_user_id: 8, valid_from: "2024-01-01 10:00:00", valid_to: null, is_current: true}
+
+  - name: months_run_from_first_to_last_stage_row_or_activity
+    model: dim_month
+    given:
+      - input: ref('ods_pipedrive__deal_changes')
+        rows:
+          - {deal_id: 1, changed_field: add_time, changed_at: "2023-06-01 10:00:00"}
+          - {deal_id: 1, changed_field: stage_id, changed_at: "2024-01-15 10:00:00"}
+          - {deal_id: 1, changed_field: lost_reason, changed_at: "2024-09-01 10:00:00"}
+      - input: ref('ods_pipedrive__activity')
+        rows:
+          - {activity_id: 10, due_at: "2024-03-15 10:00:00"}
+    expect:
+      rows:
+        - {month: 2024-01-01, month_end: 2024-01-31}
+        - {month: 2024-02-01, month_end: 2024-02-29}
+        - {month: 2024-03-01, month_end: 2024-03-31}
+
+  - name: forward_move_fills_every_stage_it_skips
+    model: fct_deal_stage_entry
+    given:
+      - input: ref('fct_deal_change')
+        rows:
+          - {deal_id: 1, changed_field: stage_id, changed_at: "2024-01-01 10:00:00", new_value: "2"}
+          - {deal_id: 1, changed_field: stage_id, changed_at: "2024-02-01 10:00:00", new_value: "5"}
+    expect:
+      rows:
+        - {deal_id: 1, stage_id: 2, entered_at: "2024-01-01 10:00:00", entered_month: 2024-01-01, is_skipped_stage: false}
+        - {deal_id: 1, stage_id: 3, entered_at: "2024-02-01 10:00:00", entered_month: 2024-02-01, is_skipped_stage: true}
+        - {deal_id: 1, stage_id: 4, entered_at: "2024-02-01 10:00:00", entered_month: 2024-02-01, is_skipped_stage: true}
+        - {deal_id: 1, stage_id: 5, entered_at: "2024-02-01 10:00:00", entered_month: 2024-02-01, is_skipped_stage: false}
+
+  - name: move_to_the_next_stage_fills_nothing
+    model: fct_deal_stage_entry
+    given:
+      - input: ref('fct_deal_change')
+        rows:
+          - {deal_id: 1, changed_field: stage_id, changed_at: "2024-01-01 10:00:00", new_value: "1"}
+          - {deal_id: 1, changed_field: stage_id, changed_at: "2024-01-02 10:00:00", new_value: "2"}
+    expect:
+      rows:
+        - {deal_id: 1, stage_id: 1, is_skipped_stage: false}
+        - {deal_id: 1, stage_id: 2, is_skipped_stage: false}
+
+  - name: backward_move_enters_only_the_lower_stage
+    model: fct_deal_stage_entry
+    given:
+      - input: ref('fct_deal_change')
+        rows:
+          - {deal_id: 1, changed_field: stage_id, changed_at: "2024-01-01 10:00:00", new_value: "4"}
+          - {deal_id: 1, changed_field: stage_id, changed_at: "2024-01-02 10:00:00", new_value: "2"}
+    expect:
+      rows:
+        - {deal_id: 1, stage_id: 4, entered_at: "2024-01-01 10:00:00", is_skipped_stage: false}
+        - {deal_id: 1, stage_id: 2, entered_at: "2024-01-02 10:00:00", is_skipped_stage: false}
+
+  - name: first_stage_row_enters_only_that_stage
+    model: fct_deal_stage_entry
+    given:
+      - input: ref('fct_deal_change')
+        rows:
+          - {deal_id: 1, changed_field: stage_id, changed_at: "2024-01-01 10:00:00", new_value: "3"}
+    expect:
+      rows:
+        - {deal_id: 1, stage_id: 3, is_skipped_stage: false}
+
+  - name: repeated_stage_is_a_new_entry_for_that_stage
+    model: fct_deal_stage_entry
+    given:
+      - input: ref('fct_deal_change')
+        rows:
+          - {deal_id: 1, changed_field: stage_id, changed_at: "2024-01-01 10:00:00", new_value: "2"}
+          - {deal_id: 1, changed_field: stage_id, changed_at: "2024-02-01 10:00:00", new_value: "2"}
+    expect:
+      rows:
+        - {deal_id: 1, stage_id: 2, entered_at: "2024-01-01 10:00:00", is_skipped_stage: false}
+        - {deal_id: 1, stage_id: 2, entered_at: "2024-02-01 10:00:00", is_skipped_stage: false}
+
+  - name: stage_rows_on_one_timestamp_order_lowest_stage_first
+    model: fct_deal_stage_entry
+    given:
+      - input: ref('fct_deal_change')
+        rows:
+          - {deal_id: 1, changed_field: stage_id, changed_at: "2024-01-01 10:00:00", new_value: "4"}
+          - {deal_id: 1, changed_field: stage_id, changed_at: "2024-01-01 10:00:00", new_value: "1"}
+    expect:
+      rows:
+        - {deal_id: 1, stage_id: 1, is_skipped_stage: false}
+        - {deal_id: 1, stage_id: 2, is_skipped_stage: true}
+        - {deal_id: 1, stage_id: 3, is_skipped_stage: true}
+        - {deal_id: 1, stage_id: 4, is_skipped_stage: false}
+
+  - name: flagged_rows_and_other_fields_never_become_stage_entries
+    model: fct_deal_stage_entry
+    given:
+      - input: ref('fct_deal_change')
+        rows:
+          - {deal_id: 1, changed_field: stage_id, changed_at: "2024-01-01 10:00:00", new_value: "1"}
+          - {deal_id: 1, changed_field: user_id, changed_at: "2024-01-01 10:00:00", new_value: "99"}
+          - {deal_id: 2, changed_field: stage_id, changed_at: "2024-01-01 10:00:00", new_value: "1", dq_reason: multiple_deal_creations}
+    expect:
+      rows:
+        - {deal_id: 1, stage_id: 1, is_skipped_stage: false}
+
+  - name: open_deal_holds_its_last_recorded_stage_at_each_month_end
+    model: fct_deal_stage_month_end
+    given:
+      - input: ref('fct_deal_stage_entry')
+        rows:
+          - {deal_id: 1, stage_id: 1, entered_at: "2024-01-10 10:00:00", is_skipped_stage: false}
+          - {deal_id: 1, stage_id: 2, entered_at: "2024-01-20 10:00:00", is_skipped_stage: false}
+          - {deal_id: 1, stage_id: 3, entered_at: "2024-03-05 10:00:00", is_skipped_stage: true}
+          - {deal_id: 1, stage_id: 4, entered_at: "2024-03-05 10:00:00", is_skipped_stage: false}
+      - input: ref('dim_month')
+        rows:
+          - {month: 2024-01-01, month_end: 2024-01-31}
+          - {month: 2024-02-01, month_end: 2024-02-29}
+          - {month: 2024-03-01, month_end: 2024-03-31}
+      - input: ref('dim_deal')
+        rows:
+          - {deal_id: 1, lost_at: null}
+    expect:
+      rows:
+        - {deal_id: 1, month: 2024-01-01, stage_id: 2}
+        - {deal_id: 1, month: 2024-02-01, stage_id: 2}
+        - {deal_id: 1, month: 2024-03-01, stage_id: 4}
+
+  - name: tied_stage_rows_leave_the_highest_stage_at_month_end
+    model: fct_deal_stage_month_end
+    given:
+      - input: ref('fct_deal_stage_entry')
+        rows:
+          - {deal_id: 1, stage_id: 2, entered_at: "2024-01-10 10:00:00", is_skipped_stage: false}
+          - {deal_id: 1, stage_id: 5, entered_at: "2024-01-10 10:00:00", is_skipped_stage: false}
+      - input: ref('dim_month')
+        rows:
+          - {month: 2024-01-01, month_end: 2024-01-31}
+      - input: ref('dim_deal')
+        rows:
+          - {deal_id: 1, lost_at: null}
+    expect:
+      rows:
+        - {deal_id: 1, month: 2024-01-01, stage_id: 5}
+
+  - name: deal_leaves_month_end_position_when_it_gets_a_lost_reason
+    model: fct_deal_stage_month_end
+    given:
+      - input: ref('fct_deal_stage_entry')
+        rows:
+          - {deal_id: 1, stage_id: 1, entered_at: "2024-01-10 10:00:00", is_skipped_stage: false}
+      - input: ref('dim_month')
+        rows:
+          - {month: 2024-01-01, month_end: 2024-01-31}
+          - {month: 2024-02-01, month_end: 2024-02-29}
+          - {month: 2024-03-01, month_end: 2024-03-31}
+      - input: ref('dim_deal')
+        rows:
+          - {deal_id: 1, lost_at: "2024-02-29 23:59:00"}
+    expect:
+      rows:
+        - {deal_id: 1, month: 2024-01-01, stage_id: 1}
+
+  - name: deal_with_no_stage_yet_has_no_month_end_position
+    model: fct_deal_stage_month_end
+    given:
+      - input: ref('fct_deal_stage_entry')
+        rows:
+          - {deal_id: 1, stage_id: 1, entered_at: "2024-02-10 10:00:00", is_skipped_stage: false}
+      - input: ref('dim_month')
+        rows:
+          - {month: 2024-01-01, month_end: 2024-01-31}
+          - {month: 2024-02-01, month_end: 2024-02-29}
+      - input: ref('dim_deal')
+        rows:
+          - {deal_id: 1, lost_at: null}
+          - {deal_id: 2, lost_at: null}
+    expect:
+      rows:
+        - {deal_id: 1, month: 2024-02-01, stage_id: 1}

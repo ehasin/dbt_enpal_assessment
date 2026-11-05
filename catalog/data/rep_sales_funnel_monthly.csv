@@ -1,0 +1,155 @@
+month,kpi_name,funnel_step,deals_count
+2024-01-01,Lead Generation,Step 1,30
+2024-01-01,Qualified Lead,Step 2,6
+2024-01-01,Sales Call 1,Step 2.1,76
+2024-01-01,Needs Assessment,Step 3,1
+2024-01-01,Sales Call 2,Step 3.1,66
+2024-01-01,Proposal/Quote Preparation,Step 4,1
+2024-01-01,Negotiation,Step 5,0
+2024-01-01,Closing,Step 6,0
+2024-01-01,Implementation/Onboarding,Step 7,0
+2024-01-01,Follow-up/Customer Success,Step 8,0
+2024-01-01,Renewal/Expansion,Step 9,0
+2024-02-01,Lead Generation,Step 1,194
+2024-02-01,Qualified Lead,Step 2,92
+2024-02-01,Sales Call 1,Step 2.1,64
+2024-02-01,Needs Assessment,Step 3,49
+2024-02-01,Sales Call 2,Step 3.1,59
+2024-02-01,Proposal/Quote Preparation,Step 4,31
+2024-02-01,Negotiation,Step 5,20
+2024-02-01,Closing,Step 6,11
+2024-02-01,Implementation/Onboarding,Step 7,3
+2024-02-01,Follow-up/Customer Success,Step 8,2
+2024-02-01,Renewal/Expansion,Step 9,2
+2024-03-01,Lead Generation,Step 1,199
+2024-03-01,Qualified Lead,Step 2,232
+2024-03-01,Sales Call 1,Step 2.1,54
+2024-03-01,Needs Assessment,Step 3,198
+2024-03-01,Sales Call 2,Step 3.1,75
+2024-03-01,Proposal/Quote Preparation,Step 4,133
+2024-03-01,Negotiation,Step 5,88
+2024-03-01,Closing,Step 6,55
+2024-03-01,Implementation/Onboarding,Step 7,36
+2024-03-01,Follow-up/Customer Success,Step 8,19
+2024-03-01,Renewal/Expansion,Step 9,7
+2024-04-01,Lead Generation,Step 1,229
+2024-04-01,Qualified Lead,Step 2,208
+2024-04-01,Sales Call 1,Step 2.1,70
+2024-04-01,Needs Assessment,Step 3,196
+2024-04-01,Sales Call 2,Step 3.1,57
+2024-04-01,Proposal/Quote Preparation,Step 4,185
+2024-04-01,Negotiation,Step 5,163
+2024-04-01,Closing,Step 6,128
+2024-04-01,Implementation/Onboarding,Step 7,83
+2024-04-01,Follow-up/Customer Success,Step 8,52
+2024-04-01,Renewal/Expansion,Step 9,23
+2024-05-01,Lead Generation,Step 1,247
+2024-05-01,Qualified Lead,Step 2,237
+2024-05-01,Sales Call 1,Step 2.1,61
+2024-05-01,Needs Assessment,Step 3,225
+2024-05-01,Sales Call 2,Step 3.1,65
+2024-05-01,Proposal/Quote Preparation,Step 4,213
+2024-05-01,Negotiation,Step 5,185
+2024-05-01,Closing,Step 6,153
+2024-05-01,Implementation/Onboarding,Step 7,108
+2024-05-01,Follow-up/Customer Success,Step 8,78
+2024-05-01,Renewal/Expansion,Step 9,25
+2024-06-01,Lead Generation,Step 1,244
+2024-06-01,Qualified Lead,Step 2,244
+2024-06-01,Sales Call 1,Step 2.1,64
+2024-06-01,Needs Assessment,Step 3,246
+2024-06-01,Sales Call 2,Step 3.1,66
+2024-06-01,Proposal/Quote Preparation,Step 4,238
+2024-06-01,Negotiation,Step 5,205
+2024-06-01,Closing,Step 6,180
+2024-06-01,Implementation/Onboarding,Step 7,138
+2024-06-01,Follow-up/Customer Success,Step 8,98
+2024-06-01,Renewal/Expansion,Step 9,42
+2024-07-01,Lead Generation,Step 1,264
+2024-07-01,Qualified Lead,Step 2,254
+2024-07-01,Sales Call 1,Step 2.1,88
+2024-07-01,Needs Assessment,Step 3,240
+2024-07-01,Sales Call 2,Step 3.1,65
+2024-07-01,Proposal/Quote Preparation,Step 4,221
+2024-07-01,Negotiation,Step 5,213
+2024-07-01,Closing,Step 6,192
+2024-07-01,Implementation/Onboarding,Step 7,151
+2024-07-01,Follow-up/Customer Success,Step 8,85
+2024-07-01,Renewal/Expansion,Step 9,48
+2024-08-01,Lead Generation,Step 1,238
+2024-08-01,Qualified Lead,Step 2,254
+2024-08-01,Sales Call 1,Step 2.1,57
+2024-08-01,Needs Assessment,Step 3,255
+2024-08-01,Sales Call 2,Step 3.1,71
+2024-08-01,Proposal/Quote Preparation,Step 4,244
+2024-08-01,Negotiation,Step 5,212
+2024-08-01,Closing,Step 6,179
+2024-08-01,Implementation/Onboarding,Step 7,136
+2024-08-01,Follow-up/Customer Success,Step 8,105
+2024-08-01,Renewal/Expansion,Step 9,37
+2024-09-01,Lead Generation,Step 1,208
+2024-09-01,Qualified Lead,Step 2,221
+2024-09-01,Sales Call 1,Step 2.1,32
+2024-09-01,Needs Assessment,Step 3,209
+2024-09-01,Sales Call 2,Step 3.1,33
+2024-09-01,Proposal/Quote Preparation,Step 4,221
+2024-09-01,Negotiation,Step 5,222
+2024-09-01,Closing,Step 6,155
+2024-09-01,Implementation/Onboarding,Step 7,123
+2024-09-01,Follow-up/Customer Success,Step 8,77
+2024-09-01,Renewal/Expansion,Step 9,43
+2024-10-01,Lead Generation,Step 1,119
+2024-10-01,Qualified Lead,Step 2,173
+2024-10-01,Sales Call 1,Step 2.1,0
+2024-10-01,Needs Assessment,Step 3,207
+2024-10-01,Sales Call 2,Step 3.1,0
+2024-10-01,Proposal/Quote Preparation,Step 4,207
+2024-10-01,Negotiation,Step 5,185
+2024-10-01,Closing,Step 6,166
+2024-10-01,Implementation/Onboarding,Step 7,127
+2024-10-01,Follow-up/Customer Success,Step 8,78
+2024-10-01,Renewal/Expansion,Step 9,34
+2024-11-01,Lead Generation,Step 1,18
+2024-11-01,Qualified Lead,Step 2,60
+2024-11-01,Sales Call 1,Step 2.1,0
+2024-11-01,Needs Assessment,Step 3,100
+2024-11-01,Sales Call 2,Step 3.1,0
+2024-11-01,Proposal/Quote Preparation,Step 4,118
+2024-11-01,Negotiation,Step 5,125
+2024-11-01,Closing,Step 6,115
+2024-11-01,Implementation/Onboarding,Step 7,97
+2024-11-01,Follow-up/Customer Success,Step 8,73
+2024-11-01,Renewal/Expansion,Step 9,31
+2024-12-01,Lead Generation,Step 1,0
+2024-12-01,Qualified Lead,Step 2,4
+2024-12-01,Sales Call 1,Step 2.1,0
+2024-12-01,Needs Assessment,Step 3,18
+2024-12-01,Sales Call 2,Step 3.1,0
+2024-12-01,Proposal/Quote Preparation,Step 4,40
+2024-12-01,Negotiation,Step 5,57
+2024-12-01,Closing,Step 6,63
+2024-12-01,Implementation/Onboarding,Step 7,54
+2024-12-01,Follow-up/Customer Success,Step 8,34
+2024-12-01,Renewal/Expansion,Step 9,19
+2025-01-01,Lead Generation,Step 1,0
+2025-01-01,Qualified Lead,Step 2,0
+2025-01-01,Sales Call 1,Step 2.1,0
+2025-01-01,Needs Assessment,Step 3,2
+2025-01-01,Sales Call 2,Step 3.1,0
+2025-01-01,Proposal/Quote Preparation,Step 4,5
+2025-01-01,Negotiation,Step 5,13
+2025-01-01,Closing,Step 6,19
+2025-01-01,Implementation/Onboarding,Step 7,17
+2025-01-01,Follow-up/Customer Success,Step 8,16
+2025-01-01,Renewal/Expansion,Step 9,10
+2025-02-01,Lead Generation,Step 1,0
+2025-02-01,Qualified Lead,Step 2,0
+2025-02-01,Sales Call 1,Step 2.1,0
+2025-02-01,Needs Assessment,Step 3,0
+2025-02-01,Sales Call 2,Step 3.1,0
+2025-02-01,Proposal/Quote Preparation,Step 4,0
+2025-02-01,Negotiation,Step 5,0
+2025-02-01,Closing,Step 6,3
+2025-02-01,Implementation/Onboarding,Step 7,3
+2025-02-01,Follow-up/Customer Success,Step 8,3
+2025-02-01,Renewal/Expansion,Step 9,1

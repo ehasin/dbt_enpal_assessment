@@ -1,0 +1,293 @@
+version: 2
+
+models:
+  - name: rep_sales_funnel_monthly
+    description: >
+      The main report: how many deals entered each funnel step each month. Counts movement. A deal
+      that jumps from stage 2 to 5 counts in 3, 4 and 5, and counts once per step per month. Sales calls
+      count from activity alone, because this data has no reliable link from a call to a deal.
+    meta:
+      layer: reporting
+      port: output
+      grain: one row per month and step
+      primary_key: [month, funnel_step]
+      use_for:
+        - Monthly volume per step
+        - Trends
+      not_for:
+        - Open deals at month end
+      kpis:
+        - funnel_step: Step 1
+          kpi_name: Lead Generation
+          definition: Deals entering stage 1 in the month.
+          source_model: fct_deal_stage_entry
+          filter: stage_id = 1
+          date_field: entered_at
+          aggregation: count distinct deal_id
+        - funnel_step: Step 2
+          kpi_name: Qualified Lead
+          definition: Deals entering or skipping stage 2 in the month.
+          source_model: fct_deal_stage_entry
+          filter: stage_id = 2
+          date_field: entered_at
+          aggregation: count distinct deal_id
+          reference: Pipedrive Deal Progress, skipped-stage convention
+        - funnel_step: Step 2.1
+          kpi_name: Sales Call 1
+          definition: Deals with a completed `meeting` activity due in the month.
+          source_model: fct_activity
+          filter: activity_type = 'meeting' and is_done and dq_reason is null
+          date_field: due_at
+          aggregation: count distinct deal_id
+        - funnel_step: Step 3
+          kpi_name: Needs Assessment
+          definition: Deals entering or skipping stage 3 in the month.
+          source_model: fct_deal_stage_entry
+          filter: stage_id = 3
+          date_field: entered_at
+          aggregation: count distinct deal_id
+          reference: Pipedrive Deal Progress, skipped-stage convention
+        - funnel_step: Step 3.1
+          kpi_name: Sales Call 2
+          definition: Deals with a completed `sc_2` activity due in the month.
+          source_model: fct_activity
+          filter: activity_type = 'sc_2' and is_done and dq_reason is null
+          date_field: due_at
+          aggregation: count distinct deal_id
+        - funnel_step: Step 4
+          kpi_name: Proposal/Quote Preparation
+          definition: Deals entering or skipping stage 4 in the month.
+          source_model: fct_deal_stage_entry
+          filter: stage_id = 4
+          date_field: entered_at
+          aggregation: count distinct deal_id
+          reference: Pipedrive Deal Progress, skipped-stage convention
+        - funnel_step: Step 5
+          kpi_name: Negotiation
+          definition: Deals entering or skipping stage 5 in the month.
+          source_model: fct_deal_stage_entry
+          filter: stage_id = 5
+          date_field: entered_at
+          aggregation: count distinct deal_id
+          reference: Pipedrive Deal Progress, skipped-stage convention
+        - funnel_step: Step 6
+          kpi_name: Closing
+          definition: Deals entering or skipping stage 6 in the month.
+          source_model: fct_deal_stage_entry
+          filter: stage_id = 6
+          date_field: entered_at
+          aggregation: count distinct deal_id
+          reference: Pipedrive Deal Progress, skipped-stage convention
+        - funnel_step: Step 7
+          kpi_name: Implementation/Onboarding
+          definition: Deals entering or skipping stage 7 in the month.
+          source_model: fct_deal_stage_entry
+          filter: stage_id = 7
+          date_field: entered_at
+          aggregation: count distinct deal_id
+          reference: Pipedrive Deal Progress, skipped-stage convention
+        - funnel_step: Step 8
+          kpi_name: Follow-up/Customer Success
+          definition: Deals entering or skipping stage 8 in the month.
+          source_model: fct_deal_stage_entry
+          filter: stage_id = 8
+          date_field: entered_at
+          aggregation: count distinct deal_id
+          reference: Pipedrive Deal Progress, skipped-stage convention
+        - funnel_step: Step 9
+          kpi_name: Renewal/Expansion
+          definition: Deals entering stage 9 in the month.
+          source_model: fct_deal_stage_entry
+          filter: stage_id = 9
+          date_field: entered_at
+          aggregation: count distinct deal_id
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [month, funnel_step]
+    columns:
+      - name: month
+        description: First day of the month.
+        data_type: date
+        data_tests: [not_null]
+      - name: kpi_name
+        description: Deal stage or sales call name.
+        data_type: text
+        data_tests: [not_null]
+      - name: funnel_step
+        description: Step number, such as Step 2.1.
+        data_type: text
+        data_tests: [not_null]
+      - name: deals_count
+        description: Distinct deals. `0` means nothing was recorded. `rep_data_quality_checks` shows which months have data.
+        data_type: integer
+        data_tests: [not_null]
+
+  - name: rep_deal_stage_distribution_monthly
+    description: >
+      The month-end report: estimated open deals in each stage at month end. Counts position. Estimated,
+      because the data has no deal status, only lost reasons. Calls aren't included: a call is a one-off
+      event with no month-end state, and too few deal IDs match between calls and stages to rely on.
+    meta:
+      layer: reporting
+      port: output
+      grain: one row per month and stage step
+      primary_key: [month, funnel_step]
+      use_for:
+        - Open pipeline by stage
+      not_for:
+        - Deals entering a stage
+        - Calls
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [month, funnel_step]
+    columns:
+      - name: month
+        description: First day of the month. Deals are read at its last day.
+        data_type: date
+        data_tests: [not_null]
+      - name: kpi_name
+        description: Deal stage name.
+        data_type: text
+        data_tests: [not_null]
+      - name: funnel_step
+        description: Step number, such as Step 2.
+        data_type: text
+        data_tests: [not_null]
+      - name: deals_count
+        description: Estimated open deals in the stage at month end.
+        data_type: integer
+        data_tests: [not_null]
+
+  - name: rep_deal_last_owner
+    description: >
+      The last owner report: who last owned each deal, with the deal's stage and status. Ownership comes from
+      `dim_deal_owner`, which holds the full history. Status is an estimate, because the data has no deal status,
+      only lost reasons.
+    meta:
+      layer: reporting
+      port: output
+      grain: one row per accepted deal
+      primary_key: [deal_id]
+      use_for:
+        - Who last owned a deal
+        - Which deals changed owner
+      not_for:
+        - Who owned a deal at an earlier date
+        - Sales performance by owner
+    columns:
+      - name: deal_id
+        description: Pipedrive deal ID.
+        data_type: integer
+        data_tests: [not_null, unique]
+      - name: owner_user_id
+        description: Last owner's user ID. Names can repeat, so use this to identify an owner.
+        data_type: integer
+      - name: owner_name
+        description: Last owner's name.
+        data_type: text
+      - name: owner_since
+        description: When the last owner was recorded.
+        data_type: timestamp
+      - name: owner_count
+        description: Owners recorded for the deal so far.
+        data_type: integer
+        data_tests: [not_null]
+      - name: current_stage
+        description: Last deal stage entered.
+        data_type: text
+      - name: deal_status
+        description: open or lost. An estimate, from lost reasons.
+        data_type: text
+        data_tests: [not_null]
+
+  - name: rep_data_quality_checks
+    description: >
+      Results of the checks that run before the reports, and source coverage by month. A `fail` row stops all
+      three business reports, while this table still builds so the reason stays visible. If a source or an
+      earlier model fails, this table can be left from the previous run. Those failures, and the final output
+      comparisons, are in the dbt run results.
+    meta:
+      layer: reporting
+      port: service
+      grain: one row per check and month, with an empty month for checks on the whole dataset
+      use_for:
+        - Deciding whether to trust a month
+        - Monitoring and audit
+      not_for:
+        - Business figures
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [check_name, month]
+    columns:
+      - name: check_name
+        description: What the check measures.
+        data_type: text
+        data_tests: [not_null]
+      - name: layer
+        description: The layer the check reads.
+        data_type: text
+      - name: month
+        description: The month checked. Empty for checks on the whole dataset.
+        data_type: date
+      - name: severity
+        description: What a failed check does. `fail` stops the business reports, `warn` doesn't.
+        data_type: text
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [fail, warn]
+      - name: expected_value
+        description: What the check expected.
+        data_type: numeric(18, 4)
+      - name: actual_value
+        description: What the check found.
+        data_type: numeric(18, 4)
+      - name: status
+        description: pass, warn or fail.
+        data_type: text
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [pass, warn, fail]
+      - name: detail
+        description: The result in words.
+        data_type: text
+
+  - name: rep_records_for_review
+    description: Every row kept out of accepted data, with its reason. For clearing issues with the source owner.
+    meta:
+      layer: reporting
+      port: service
+      grain: one row per flagged source record
+      primary_key: [record_key]
+      use_for:
+        - Fixing issues at the source
+      not_for:
+        - Business figures
+    columns:
+      - name: source_table
+        description: The raw table the row came from.
+        data_type: text
+        data_tests: [not_null]
+      - name: record_key
+        description: A hash of the whole row. `activity_id` repeats here and `deal_changes` has no ID.
+        data_type: text
+        data_tests: [not_null, unique]
+      - name: record_id
+        description: The row's own ID, where it has one.
+        data_type: integer
+      - name: deal_id
+        description: Deal ID on the row.
+        data_type: integer
+      - name: dq_reason
+        description: Why the row is kept out of accepted data.
+        data_type: text
+        data_tests: [not_null]
+      - name: source_record
+        description: The whole row, as JSON.
+        data_type: jsonb
