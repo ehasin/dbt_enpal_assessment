@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-05T12:13:39+00:00",
+  "generated_at": "2026-11-05T12:16:31+00:00",
   "schema": "public_pipedrive_analytics",
   "input_sha256": {
     "dbt_project.yml": "94f187f67d6348ac75355c71a68ddea1cb273c9d82b923ac96c3bf5749080067",
@@ -34,7 +34,7 @@
     "models/reporting/_reporting__models.yml": "32acfcdbd4ebdb1b2525f490ec5c89e2c933a439ec810e370d58af968525939f",
     "models/reporting/_reporting__unit_tests.yml": "8ac7f42209b5ead044740a0b271a5ad492ed44285a94ba62c1262af69c053ba2",
     "models/reporting/README.md": "1f753fcfc69eec79357085f67605ba869cd6c470605e7253e3b5bb0bb17f1c44",
-    "models/reporting/rep_data_quality_checks.sql": "fbb0bc2d5ecb1bbd5c02f773151d99717d211d828d6ca43634789303a09995ad",
+    "models/reporting/rep_data_quality_checks.sql": "29ea527dab10f2292d4d9f1b3357aa9b0d154b6abf0a073ac62c856605a1d4b4",
     "models/reporting/rep_deal_last_owner.sql": "8551bc022c7b6446284ee2b19599532b149fe032f222be5fc7662ffa1e520b49",
     "models/reporting/rep_deal_stage_distribution_monthly.sql": "568b7edb4f32ce1348be10be2fadb5634072b4304944673a21ddd63f2edc8d44",
     "models/reporting/rep_records_for_review.sql": "56495515c952b6b81fcf4eb0b49ea84dd2f74ae5cc988a44346a8b907afd7f57",
@@ -62,7 +62,7 @@
     "tests/reporting/assert_sales_funnel_matches_recount.sql": "972db27ade9d76e84657164c131f4a179575f0edec64f772c07415003be94a43",
     "tests/reporting/assert_stage_distribution_matches_recount.sql": "e806066640d2ff7ae572cb3b1521e7e23cdcdbf81df8b32f15d291357edfeccd"
   },
-  "project_fingerprint": "969a0ba6c9afdde8d785b9c136b66c33390d2877e6d9f6f37e5cdfe3920a14d2",
+  "project_fingerprint": "7b4df3c9f731a27b1689fdae231d2d5db10d97ba336daa81c73e92cdbb684ee5",
   "note": "Export after dbt build. Input hashes identify the packaged source; they do not certify a build or freshness SLA.",
   "exports": {
     "rep_sales_funnel_monthly.csv": "5815727ae9d89995108893bc0c8cf3b746b454787729fe6b62b13a77e48bcd19",

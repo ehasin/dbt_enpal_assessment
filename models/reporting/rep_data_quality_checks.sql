@@ -1,4 +1,4 @@
--- Every check result in one place: whether a month can be trusted, and why a build stopped.
+-- Results of the checks that run before the reports, and source coverage by month.
 -- A fail row stops all three output ports. Expected values come from ods_ or fixed lists, never from accepted data alone.
 
 {%- set source_tables = ['deal_changes', 'activity', 'users', 'stages', 'activity_types', 'fields'] %}
