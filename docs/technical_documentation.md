@@ -1,7 +1,5 @@
 # Technical documentation
 
-> Documentation note: the documentation in this repository was written with AI assistance.
-
 For engineers. Every number here comes from a saved query in `analyses/`. `docs/methodology_and_assumptions.md` explains the decisions.
 
 ## 1. Architecture and lineage

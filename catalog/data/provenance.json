@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-11-05T10:54:53+00:00",
+  "generated_at": "2026-11-05T11:57:24+00:00",
   "schema": "public_pipedrive_analytics",
   "input_sha256": {
     "dbt_project.yml": "94f187f67d6348ac75355c71a68ddea1cb273c9d82b923ac96c3bf5749080067",
     "docs/business_guide.md": "798c1c7c64a8b378db4ab45f87f4add7c6dd85ce90296a825f261980be3299ff",
     "docs/methodology_and_assumptions.md": "1889957e3bdc4c658b92e10bc2156c2535fdc1dc93c3139d0f1e026446322b42",
-    "docs/technical_documentation.md": "37bf57ba188c5b735520b1e4e46a641ce5653dc2c8fc0bb653cc336959a400d6",
+    "docs/technical_documentation.md": "fb481581a237d8b8f1fde92356cab7442c03992292779f1f550da21eb69cd2ad",
     "init.sql": "90dc58a9cc94138e70c23b5e0c4032747ead59441f6dd90b3a64fd9be112b331",
     "macros/recount_funnel.sql": "e02237d8b8cd50c1eaecfdea8038bd11821fb0bd37ce5a7d4d13bbcb2440d736",
     "models/core/_core__models.yml": "9d38146f18c53519ebb41edc46d4158448e74f93f7d045616f13ef4845b74d4b",
@@ -62,7 +62,7 @@
     "tests/reporting/assert_sales_funnel_matches_recount.sql": "972db27ade9d76e84657164c131f4a179575f0edec64f772c07415003be94a43",
     "tests/reporting/assert_stage_distribution_matches_recount.sql": "e806066640d2ff7ae572cb3b1521e7e23cdcdbf81df8b32f15d291357edfeccd"
   },
-  "project_fingerprint": "fb8eb060d8a6c58b3f595d635a048c9d16d3fc306cc4712f224d0146bb416fd9",
+  "project_fingerprint": "06da36957cf853f7c5b83070616e250482946b31b3e9cb7e434da6bf1de4d59c",
   "note": "Export after dbt build. Input hashes identify the packaged source; they do not certify a build or freshness SLA.",
   "exports": {
     "rep_sales_funnel_monthly.csv": "5815727ae9d89995108893bc0c8cf3b746b454787729fe6b62b13a77e48bcd19",
