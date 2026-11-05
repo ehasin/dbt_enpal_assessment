@@ -1,0 +1,120 @@
+version: 2
+
+# Tests here are the first gate: a failure stops everything built on that table.
+sources:
+  - name: pipedrive
+    description: Pipedrive CRM extract, loaded unchanged by raw_data/load_data.sh.
+    database: postgres
+    schema: public
+    tables:
+      - name: deal_changes
+        description: One row per recorded deal field change, in key/value form. No declared key.
+        data_tests:
+          - not_empty
+        columns:
+          - name: deal_id
+            description: Pipedrive deal ID.
+            data_tests: [not_null]
+          - name: change_time
+            description: When the field changed.
+            data_tests: [not_null]
+          - name: changed_field_key
+            description: The field that changed.
+            data_tests:
+              - not_null
+              - accepted_values:
+                  arguments:
+                    values: [add_time, user_id, stage_id, lost_reason]
+          - name: new_value
+            description: The field's value after the change, as text.
+            data_tests:
+              - not_null
+              - accepted_values:
+                  name: stage_rows_use_a_known_stage
+                  arguments:
+                    values: ['1', '2', '3', '4', '5', '6', '7', '8', '9']
+                  config:
+                    where: "changed_field_key = 'stage_id'"
+
+      - name: activity
+        description: One row per activity. `activity_id` is the intended key, and some IDs repeat.
+        data_tests:
+          - not_empty
+        columns:
+          - name: activity_id
+            description: Pipedrive activity ID.
+            data_tests: [not_null]
+          - name: type
+            description: Activity type code, such as `meeting`.
+            data_tests:
+              - not_null
+              - accepted_values:
+                  arguments:
+                    values: [meeting, sc_2, follow_up, after_close_call]
+          - name: assigned_to_user
+            description: User assigned to the activity.
+          - name: deal_id
+            description: Deal ID on the activity. Too sparse a match with `deal_changes` to rely on.
+            data_tests: [not_null]
+          - name: done
+            description: Whether the activity is marked as done.
+            data_tests: [not_null]
+          - name: due_to
+            description: Scheduled due time. The extract has no marked-as-done time.
+            data_tests: [not_null]
+
+      - name: users
+        description: One row per user. Holds personal data.
+        data_tests:
+          - not_empty
+        columns:
+          - name: id
+            description: User ID.
+            data_tests: [not_null, unique]
+          - name: name
+            description: User's name.
+          - name: email
+            description: User's email. Stays in ods_, out of every published table.
+          - name: modified
+            description: When the user record last changed.
+
+      - name: stages
+        description: One row per pipeline stage.
+        data_tests:
+          - not_empty
+        columns:
+          - name: stage_id
+            description: Stage ID.
+            data_tests: [not_null, unique]
+          - name: stage_name
+            description: Stage name, in the source's spelling.
+
+      - name: activity_types
+        description: One row per activity type. Maps `meeting` to Sales Call 1 and `sc_2` to Sales Call 2.
+        data_tests:
+          - not_empty
+        columns:
+          - name: id
+            description: Activity type ID.
+            data_tests: [not_null, unique]
+          - name: name
+            description: Activity type name.
+          - name: active
+            description: Yes or No.
+          - name: type
+            description: Activity type code.
+
+      - name: fields
+        description: One row per deal field in the extract, with coded values for some.
+        data_tests:
+          - not_empty
+        columns:
+          - name: id
+            description: Field ID.
+            data_tests: [not_null, unique]
+          - name: field_key
+            description: Field key, as used in `deal_changes`.
+          - name: name
+            description: Field label.
+          - name: field_value_options
+            description: Coded values and their labels, as JSON.

@@ -1,0 +1,576 @@
+version: 2
+
+# The first test is a clean fixture: every check passes. Each test after it swaps in one corrupted input
+# and proves the matching check fails. Coverage warns throughout, since the fixture has a single month.
+unit_tests:
+  - name: clean_fixture_passes_every_check
+    model: rep_data_quality_checks
+    given:
+      - &raw_deal_changes
+        input: source('pipedrive', 'deal_changes')
+        rows: [{deal_id: 1}, {deal_id: 1}]
+      - &raw_activity
+        input: source('pipedrive', 'activity')
+        rows: [{activity_id: 10}]
+      - &raw_users
+        input: source('pipedrive', 'users')
+        rows: [{id: 1}]
+      - &raw_stages
+        input: source('pipedrive', 'stages')
+        rows: [{stage_id: 1}]
+      - &raw_activity_types
+        input: source('pipedrive', 'activity_types')
+        rows: [{id: 1}, {id: 2}]
+      - &raw_fields
+        input: source('pipedrive', 'fields')
+        rows: [{id: 1}]
+      - &ods_deal_changes
+        input: ref('ods_pipedrive__deal_changes')
+        rows:
+          - {deal_id: 1, changed_field: add_time, changed_at: "2024-01-01 10:00:00", new_value: "2024-01-01"}
+          - {deal_id: 1, changed_field: stage_id, changed_at: "2024-01-02 10:00:00", new_value: "1"}
+      - &ods_activity
+        input: ref('ods_pipedrive__activity')
+        rows:
+          - {activity_id: 10, activity_type: meeting, deal_id: 5, is_done: true, due_at: "2024-01-03 10:00:00"}
+      - &ods_users
+        input: ref('ods_pipedrive__users')
+        rows: [{user_id: 1}]
+      - &ods_stages
+        input: ref('ods_pipedrive__stages')
+        rows: [{stage_id: 1, stage_name: Lead Generation}]
+      - &ods_activity_types
+        input: ref('ods_pipedrive__activity_types')
+        rows:
+          - {activity_type: meeting, activity_type_name: Sales Call 1}
+          - {activity_type: sc_2, activity_type_name: Sales Call 2}
+      - &ods_fields
+        input: ref('ods_pipedrive__fields')
+        rows: [{field_id: 1}]
+      - &funnel_steps
+        input: ref('funnel_steps')
+        rows:
+          - {funnel_step: Step 1, kpi_name: Lead Generation, stage_id: 1}
+          - {funnel_step: Step 2, kpi_name: Qualified Lead, stage_id: 2}
+          - {funnel_step: Step 2.1, kpi_name: Sales Call 1, stage_id: null}
+          - {funnel_step: Step 3, kpi_name: Needs Assessment, stage_id: 3}
+          - {funnel_step: Step 3.1, kpi_name: Sales Call 2, stage_id: null}
+          - {funnel_step: Step 4, kpi_name: Proposal/Quote Preparation, stage_id: 4}
+          - {funnel_step: Step 5, kpi_name: Negotiation, stage_id: 5}
+          - {funnel_step: Step 6, kpi_name: Closing, stage_id: 6}
+          - {funnel_step: Step 7, kpi_name: Implementation/Onboarding, stage_id: 7}
+          - {funnel_step: Step 8, kpi_name: Follow-up/Customer Success, stage_id: 8}
+          - {funnel_step: Step 9, kpi_name: Renewal/Expansion, stage_id: 9}
+      - &dim_month
+        input: ref('dim_month')
+        rows: [{month: 2024-01-01, month_end: 2024-01-31}]
+      - &fct_deal_change
+        input: ref('fct_deal_change')
+        rows:
+          - {deal_id: 1, changed_field: add_time, changed_at: "2024-01-01 10:00:00"}
+          - {deal_id: 1, changed_field: stage_id, changed_at: "2024-01-02 10:00:00"}
+      - &fct_activity
+        input: ref('fct_activity')
+        rows:
+          - {activity_id: 10, activity_type: meeting, deal_id: 5, is_done: true, due_at: "2024-01-03 10:00:00", due_month: 2024-01-01}
+      - &fct_deal_stage_entry
+        input: ref('fct_deal_stage_entry')
+        rows: [{deal_id: 1, stage_id: 1, entered_month: 2024-01-01}]
+      - &rep_records_for_review
+        input: ref('rep_records_for_review')
+        rows: []
+    expect:
+      rows:
+        - &pass_raw_tables_loaded {check_name: raw_tables_loaded, status: pass}
+        - &pass_exact_duplicates_in_raw {check_name: exact_duplicates_in_raw, status: pass}
+        - &pass_stage_row_acceptance_rate {check_name: stage_row_acceptance_rate, status: pass}
+        - &pass_sales_call_acceptance_rate {check_name: sales_call_acceptance_rate, status: pass}
+        - &pass_accepted_plus_review_balances {check_name: accepted_plus_review_balances, status: pass}
+        - &pass_accepted_data_in_every_month {check_name: accepted_data_in_every_month, status: pass}
+        - &pass_funnel_steps_complete {check_name: funnel_steps_complete, status: pass}
+        - &pass_stage_steps_reconcile {check_name: stage_steps_reconcile, status: pass}
+        - &pass_call_steps_reconcile {check_name: call_steps_reconcile, status: pass}
+        - &pass_unmapped_stage {check_name: unmapped_stage, status: pass}
+        - &pass_unmapped_activity_type {check_name: unmapped_activity_type, status: pass}
+        - &warn_stage_coverage {check_name: stage_coverage, status: warn}
+        - &warn_activity_coverage {check_name: activity_coverage, status: warn}
+
+  - name: empty_raw_table_fails_raw_tables_loaded
+    model: rep_data_quality_checks
+    given:
+      - *raw_deal_changes
+      - *raw_activity
+      - {input: "source('pipedrive', 'users')", rows: []}
+      - *raw_stages
+      - *raw_activity_types
+      - *raw_fields
+      - {input: "ref('ods_pipedrive__users')", rows: []}
+      - *ods_deal_changes
+      - *ods_activity
+      - *ods_stages
+      - *ods_activity_types
+      - *ods_fields
+      - *funnel_steps
+      - *dim_month
+      - *fct_deal_change
+      - *fct_activity
+      - *fct_deal_stage_entry
+      - *rep_records_for_review
+    expect:
+      rows:
+        - {check_name: raw_tables_loaded, status: fail}
+        - *pass_exact_duplicates_in_raw
+        - *pass_stage_row_acceptance_rate
+        - *pass_sales_call_acceptance_rate
+        - *pass_accepted_plus_review_balances
+        - *pass_accepted_data_in_every_month
+        - *pass_funnel_steps_complete
+        - *pass_stage_steps_reconcile
+        - *pass_call_steps_reconcile
+        - *pass_unmapped_stage
+        - *pass_unmapped_activity_type
+        - *warn_stage_coverage
+        - *warn_activity_coverage
+
+  - name: exact_duplicate_rows_in_raw_warn_without_failing
+    model: rep_data_quality_checks
+    given:
+      - *raw_deal_changes
+      - {input: "source('pipedrive', 'activity')", rows: [{activity_id: 10}, {activity_id: 10}]}
+      - *raw_users
+      - *raw_stages
+      - *raw_activity_types
+      - *raw_fields
+      - *ods_deal_changes
+      - *ods_activity
+      - *ods_users
+      - *ods_stages
+      - *ods_activity_types
+      - *ods_fields
+      - *funnel_steps
+      - *dim_month
+      - *fct_deal_change
+      - *fct_activity
+      - *fct_deal_stage_entry
+      - *rep_records_for_review
+    expect:
+      rows:
+        - *pass_raw_tables_loaded
+        - {check_name: exact_duplicates_in_raw, status: warn}
+        - *pass_stage_row_acceptance_rate
+        - *pass_sales_call_acceptance_rate
+        - *pass_accepted_plus_review_balances
+        - *pass_accepted_data_in_every_month
+        - *pass_funnel_steps_complete
+        - *pass_stage_steps_reconcile
+        - *pass_call_steps_reconcile
+        - *pass_unmapped_stage
+        - *pass_unmapped_activity_type
+        - *warn_stage_coverage
+        - *warn_activity_coverage
+
+  - name: losing_stage_rows_fails_stage_row_acceptance_rate
+    model: rep_data_quality_checks
+    overrides:
+      vars: {min_stage_row_acceptance_rate: 0.95}
+    given:
+      - *raw_deal_changes
+      - *raw_activity
+      - *raw_users
+      - *raw_stages
+      - *raw_activity_types
+      - *raw_fields
+      - *ods_deal_changes
+      - *ods_activity
+      - *ods_users
+      - *ods_stages
+      - *ods_activity_types
+      - *ods_fields
+      - *funnel_steps
+      - *dim_month
+      - input: ref('fct_deal_change')
+        rows:
+          - {deal_id: 1, changed_field: add_time, changed_at: "2024-01-01 10:00:00"}
+          - {deal_id: 1, changed_field: stage_id, changed_at: "2024-01-02 10:00:00", dq_reason: multiple_deal_creations}
+      - *fct_activity
+      - *fct_deal_stage_entry
+      - input: ref('rep_records_for_review')
+        rows: [{record_key: a}]
+    expect:
+      rows:
+        - *pass_raw_tables_loaded
+        - *pass_exact_duplicates_in_raw
+        - {check_name: stage_row_acceptance_rate, status: fail}
+        - *pass_sales_call_acceptance_rate
+        - *pass_accepted_plus_review_balances
+        - {check_name: accepted_data_in_every_month, status: fail}
+        - *pass_funnel_steps_complete
+        - *pass_stage_steps_reconcile
+        - *pass_call_steps_reconcile
+        - *pass_unmapped_stage
+        - *pass_unmapped_activity_type
+        - *warn_stage_coverage
+        - *warn_activity_coverage
+
+  - name: losing_sales_calls_fails_sales_call_acceptance_rate
+    model: rep_data_quality_checks
+    given:
+      - *raw_deal_changes
+      - *raw_activity
+      - *raw_users
+      - *raw_stages
+      - *raw_activity_types
+      - *raw_fields
+      - *ods_deal_changes
+      - *ods_activity
+      - *ods_users
+      - *ods_stages
+      - *ods_activity_types
+      - *ods_fields
+      - *funnel_steps
+      - *dim_month
+      - *fct_deal_change
+      - input: ref('fct_activity')
+        rows:
+          - {activity_id: 10, activity_type: meeting, deal_id: 5, is_done: true, due_at: "2024-01-03 10:00:00", due_month: 2024-01-01, dq_reason: duplicate_activity_id}
+      - *fct_deal_stage_entry
+      - input: ref('rep_records_for_review')
+        rows: [{record_key: a}]
+    expect:
+      rows:
+        - *pass_raw_tables_loaded
+        - *pass_exact_duplicates_in_raw
+        - *pass_stage_row_acceptance_rate
+        - {check_name: sales_call_acceptance_rate, status: fail}
+        - *pass_accepted_plus_review_balances
+        - {check_name: accepted_data_in_every_month, status: fail}
+        - *pass_funnel_steps_complete
+        - *pass_stage_steps_reconcile
+        - {check_name: call_steps_reconcile, status: fail}
+        - *pass_unmapped_stage
+        - *pass_unmapped_activity_type
+        - *warn_stage_coverage
+        - *warn_activity_coverage
+
+  - name: extra_review_row_fails_accepted_plus_review_balances
+    model: rep_data_quality_checks
+    given:
+      - *raw_deal_changes
+      - *raw_activity
+      - *raw_users
+      - *raw_stages
+      - *raw_activity_types
+      - *raw_fields
+      - *ods_deal_changes
+      - *ods_activity
+      - *ods_users
+      - *ods_stages
+      - *ods_activity_types
+      - *ods_fields
+      - *funnel_steps
+      - *dim_month
+      - *fct_deal_change
+      - *fct_activity
+      - *fct_deal_stage_entry
+      - input: ref('rep_records_for_review')
+        rows: [{record_key: a}]
+    expect:
+      rows:
+        - *pass_raw_tables_loaded
+        - *pass_exact_duplicates_in_raw
+        - *pass_stage_row_acceptance_rate
+        - *pass_sales_call_acceptance_rate
+        - {check_name: accepted_plus_review_balances, status: fail}
+        - *pass_accepted_data_in_every_month
+        - *pass_funnel_steps_complete
+        - *pass_stage_steps_reconcile
+        - *pass_call_steps_reconcile
+        - *pass_unmapped_stage
+        - *pass_unmapped_activity_type
+        - *warn_stage_coverage
+        - *warn_activity_coverage
+
+  - name: month_with_no_accepted_rows_fails_under_any_rate_threshold
+    model: rep_data_quality_checks
+    overrides:
+      vars: {min_stage_row_acceptance_rate: 0}
+    given:
+      - *raw_deal_changes
+      - *raw_activity
+      - *raw_users
+      - *raw_stages
+      - *raw_activity_types
+      - *raw_fields
+      - *ods_deal_changes
+      - *ods_activity
+      - *ods_users
+      - *ods_stages
+      - *ods_activity_types
+      - *ods_fields
+      - *funnel_steps
+      - *dim_month
+      - input: ref('fct_deal_change')
+        rows:
+          - {deal_id: 1, changed_field: add_time, changed_at: "2024-01-01 10:00:00"}
+          - {deal_id: 1, changed_field: stage_id, changed_at: "2024-01-02 10:00:00", dq_reason: multiple_deal_creations}
+      - *fct_activity
+      - *fct_deal_stage_entry
+      - input: ref('rep_records_for_review')
+        rows: [{record_key: a}]
+    expect:
+      rows:
+        - *pass_raw_tables_loaded
+        - *pass_exact_duplicates_in_raw
+        - *pass_stage_row_acceptance_rate
+        - *pass_sales_call_acceptance_rate
+        - *pass_accepted_plus_review_balances
+        - {check_name: accepted_data_in_every_month, status: fail}
+        - *pass_funnel_steps_complete
+        - *pass_stage_steps_reconcile
+        - *pass_call_steps_reconcile
+        - *pass_unmapped_stage
+        - *pass_unmapped_activity_type
+        - *warn_stage_coverage
+        - *warn_activity_coverage
+
+  - name: missing_step_in_the_seed_fails_funnel_steps_complete
+    model: rep_data_quality_checks
+    given:
+      - *raw_deal_changes
+      - *raw_activity
+      - *raw_users
+      - *raw_stages
+      - *raw_activity_types
+      - *raw_fields
+      - *ods_deal_changes
+      - *ods_activity
+      - *ods_users
+      - *ods_stages
+      - *ods_activity_types
+      - *ods_fields
+      - input: ref('funnel_steps')
+        rows:
+          - {funnel_step: Step 1, kpi_name: Lead Generation, stage_id: 1}
+          - {funnel_step: Step 2.1, kpi_name: Sales Call 1, stage_id: null}
+          - {funnel_step: Step 3.1, kpi_name: Sales Call 2, stage_id: null}
+      - *dim_month
+      - *fct_deal_change
+      - *fct_activity
+      - *fct_deal_stage_entry
+      - *rep_records_for_review
+    expect:
+      rows:
+        - *pass_raw_tables_loaded
+        - *pass_exact_duplicates_in_raw
+        - *pass_stage_row_acceptance_rate
+        - *pass_sales_call_acceptance_rate
+        - *pass_accepted_plus_review_balances
+        - *pass_accepted_data_in_every_month
+        - {check_name: funnel_steps_complete, status: fail}
+        - *pass_stage_steps_reconcile
+        - *pass_call_steps_reconcile
+        - *pass_unmapped_stage
+        - *pass_unmapped_activity_type
+        - *warn_stage_coverage
+        - *warn_activity_coverage
+
+  - name: stage_counts_off_the_recount_fail_stage_steps_reconcile
+    model: rep_data_quality_checks
+    given:
+      - *raw_deal_changes
+      - *raw_activity
+      - *raw_users
+      - *raw_stages
+      - *raw_activity_types
+      - *raw_fields
+      - *ods_deal_changes
+      - *ods_activity
+      - *ods_users
+      - *ods_stages
+      - *ods_activity_types
+      - *ods_fields
+      - *funnel_steps
+      - *dim_month
+      - *fct_deal_change
+      - *fct_activity
+      - input: ref('fct_deal_stage_entry')
+        rows:
+          - {deal_id: 1, stage_id: 1, entered_month: 2024-01-01}
+          - {deal_id: 2, stage_id: 1, entered_month: 2024-01-01}
+      - *rep_records_for_review
+    expect:
+      rows:
+        - *pass_raw_tables_loaded
+        - *pass_exact_duplicates_in_raw
+        - *pass_stage_row_acceptance_rate
+        - *pass_sales_call_acceptance_rate
+        - *pass_accepted_plus_review_balances
+        - *pass_accepted_data_in_every_month
+        - *pass_funnel_steps_complete
+        - {check_name: stage_steps_reconcile, status: fail}
+        - *pass_call_steps_reconcile
+        - *pass_unmapped_stage
+        - *pass_unmapped_activity_type
+        - *warn_stage_coverage
+        - *warn_activity_coverage
+
+  - name: call_counts_off_the_recount_fail_call_steps_reconcile
+    model: rep_data_quality_checks
+    given:
+      - *raw_deal_changes
+      - *raw_activity
+      - *raw_users
+      - *raw_stages
+      - *raw_activity_types
+      - *raw_fields
+      - *ods_deal_changes
+      - *ods_activity
+      - *ods_users
+      - *ods_stages
+      - *ods_activity_types
+      - *ods_fields
+      - *funnel_steps
+      - *dim_month
+      - *fct_deal_change
+      - input: ref('fct_activity')
+        rows:
+          - {activity_id: 10, activity_type: meeting, deal_id: 5, is_done: false, due_at: "2024-01-03 10:00:00", due_month: 2024-01-01}
+      - *fct_deal_stage_entry
+      - *rep_records_for_review
+    expect:
+      rows:
+        - *pass_raw_tables_loaded
+        - *pass_exact_duplicates_in_raw
+        - *pass_stage_row_acceptance_rate
+        - *pass_sales_call_acceptance_rate
+        - *pass_accepted_plus_review_balances
+        - *pass_accepted_data_in_every_month
+        - *pass_funnel_steps_complete
+        - *pass_stage_steps_reconcile
+        - {check_name: call_steps_reconcile, status: fail}
+        - *pass_unmapped_stage
+        - *pass_unmapped_activity_type
+        - *warn_stage_coverage
+        - *warn_activity_coverage
+
+  - name: stage_with_no_funnel_step_fails_unmapped_stage
+    model: rep_data_quality_checks
+    given:
+      - *raw_deal_changes
+      - *raw_activity
+      - *raw_users
+      - *raw_stages
+      - *raw_activity_types
+      - *raw_fields
+      - input: ref('ods_pipedrive__deal_changes')
+        rows:
+          - {deal_id: 1, changed_field: add_time, changed_at: "2024-01-01 10:00:00", new_value: "2024-01-01"}
+          - {deal_id: 1, changed_field: stage_id, changed_at: "2024-01-02 10:00:00", new_value: "10"}
+      - *ods_activity
+      - *ods_users
+      - *ods_stages
+      - *ods_activity_types
+      - *ods_fields
+      - *funnel_steps
+      - *dim_month
+      - *fct_deal_change
+      - *fct_activity
+      - input: ref('fct_deal_stage_entry')
+        rows: []
+      - *rep_records_for_review
+    expect:
+      rows:
+        - *pass_raw_tables_loaded
+        - *pass_exact_duplicates_in_raw
+        - *pass_stage_row_acceptance_rate
+        - *pass_sales_call_acceptance_rate
+        - *pass_accepted_plus_review_balances
+        - *pass_accepted_data_in_every_month
+        - *pass_funnel_steps_complete
+        - *pass_stage_steps_reconcile
+        - *pass_call_steps_reconcile
+        - {check_name: unmapped_stage, status: fail}
+        - *pass_unmapped_activity_type
+        - *warn_stage_coverage
+        - *warn_activity_coverage
+
+  - name: call_step_with_no_activity_type_fails_unmapped_activity_type
+    model: rep_data_quality_checks
+    given:
+      - *raw_deal_changes
+      - *raw_activity
+      - *raw_users
+      - *raw_stages
+      - *raw_activity_types
+      - *raw_fields
+      - *ods_deal_changes
+      - *ods_activity
+      - *ods_users
+      - *ods_stages
+      - input: ref('ods_pipedrive__activity_types')
+        rows:
+          - {activity_type: meeting, activity_type_name: Sales Call 1}
+          - {activity_type: follow_up, activity_type_name: Follow Up Call}
+      - *ods_fields
+      - *funnel_steps
+      - *dim_month
+      - *fct_deal_change
+      - *fct_activity
+      - *fct_deal_stage_entry
+      - *rep_records_for_review
+    expect:
+      rows:
+        - *pass_raw_tables_loaded
+        - *pass_exact_duplicates_in_raw
+        - *pass_stage_row_acceptance_rate
+        - *pass_sales_call_acceptance_rate
+        - *pass_accepted_plus_review_balances
+        - *pass_accepted_data_in_every_month
+        - *pass_funnel_steps_complete
+        - *pass_stage_steps_reconcile
+        - *pass_call_steps_reconcile
+        - *pass_unmapped_stage
+        - {check_name: unmapped_activity_type, status: fail}
+        - *warn_stage_coverage
+        - *warn_activity_coverage
+
+  - name: activity_of_an_unknown_type_fails_unmapped_activity_type
+    model: rep_data_quality_checks
+    given:
+      - *raw_deal_changes
+      - *raw_activity
+      - *raw_users
+      - *raw_stages
+      - *raw_activity_types
+      - *raw_fields
+      - *ods_deal_changes
+      - input: ref('ods_pipedrive__activity')
+        rows:
+          - {activity_id: 10, activity_type: meeting, deal_id: 5, is_done: true, due_at: "2024-01-03 10:00:00"}
+          - {activity_id: 11, activity_type: unknown, deal_id: 6, is_done: true, due_at: "2024-01-03 10:00:00"}
+      - *ods_users
+      - *ods_stages
+      - *ods_activity_types
+      - *ods_fields
+      - *funnel_steps
+      - *dim_month
+      - *fct_deal_change
+      - *fct_activity
+      - *fct_deal_stage_entry
+      - input: ref('rep_records_for_review')
+        rows: [{record_key: a}]
+    expect:
+      rows:
+        - *pass_raw_tables_loaded
+        - {check_name: exact_duplicates_in_raw, status: warn}
+        - *pass_stage_row_acceptance_rate
+        - *pass_sales_call_acceptance_rate
+        - *pass_accepted_plus_review_balances
+        - *pass_accepted_data_in_every_month
+        - *pass_funnel_steps_complete
+        - *pass_stage_steps_reconcile
+        - *pass_call_steps_reconcile
+        - *pass_unmapped_stage
+        - {check_name: unmapped_activity_type, status: fail}
+        - *warn_stage_coverage
+        - *warn_activity_coverage

@@ -1,0 +1,152 @@
+version: 2
+
+unit_tests:
+  - name: funnel_counts_a_deal_once_per_cell_and_shows_empty_cells_as_0
+    model: rep_sales_funnel_monthly
+    given:
+      - input: ref('rep_data_quality_checks')
+        rows: []
+      - input: ref('fct_deal_stage_entry')
+        rows:
+          - {deal_id: 1, stage_id: 1, entered_month: 2024-01-01}
+          - {deal_id: 1, stage_id: 1, entered_month: 2024-01-01}
+          - {deal_id: 2, stage_id: 1, entered_month: 2024-01-01}
+      - input: ref('dim_stage')
+        rows:
+          - {stage_id: 1, kpi_name: Lead Generation}
+      - input: ref('fct_activity')
+        rows: []
+      - input: ref('dim_activity_type')
+        rows: []
+      - input: ref('dim_month')
+        rows:
+          - {month: 2024-01-01}
+          - {month: 2024-02-01}
+      - input: ref('funnel_steps')
+        rows:
+          - {step_order: 1, funnel_step: Step 1, kpi_name: Lead Generation, stage_id: 1}
+    expect:
+      rows:
+        - {month: 2024-01-01, kpi_name: Lead Generation, funnel_step: Step 1, deals_count: 2}
+        - {month: 2024-02-01, kpi_name: Lead Generation, funnel_step: Step 1, deals_count: 0}
+
+  - name: a_deal_with_both_calls_in_a_month_counts_in_both_call_steps
+    model: rep_sales_funnel_monthly
+    given:
+      - input: ref('rep_data_quality_checks')
+        rows: []
+      - input: ref('fct_deal_stage_entry')
+        rows: []
+      - input: ref('dim_stage')
+        rows: []
+      - input: ref('fct_activity')
+        rows:
+          - {deal_id: 1, activity_type: meeting, is_done: true, due_month: 2024-01-01}
+          - {deal_id: 1, activity_type: sc_2, is_done: true, due_month: 2024-01-01}
+      - input: ref('dim_activity_type')
+        rows:
+          - {activity_type: meeting, activity_type_name: Sales Call 1, is_sales_call: true}
+          - {activity_type: sc_2, activity_type_name: Sales Call 2, is_sales_call: true}
+      - input: ref('dim_month')
+        rows:
+          - {month: 2024-01-01}
+      - input: ref('funnel_steps')
+        rows:
+          - {step_order: 3, funnel_step: Step 2.1, kpi_name: Sales Call 1, stage_id: null}
+          - {step_order: 5, funnel_step: Step 3.1, kpi_name: Sales Call 2, stage_id: null}
+    expect:
+      rows:
+        - {month: 2024-01-01, kpi_name: Sales Call 1, funnel_step: Step 2.1, deals_count: 1}
+        - {month: 2024-01-01, kpi_name: Sales Call 2, funnel_step: Step 3.1, deals_count: 1}
+
+  - name: only_completed_accepted_sales_calls_count
+    model: rep_sales_funnel_monthly
+    given:
+      - input: ref('rep_data_quality_checks')
+        rows: []
+      - input: ref('fct_deal_stage_entry')
+        rows: []
+      - input: ref('dim_stage')
+        rows: []
+      - input: ref('fct_activity')
+        rows:
+          - {deal_id: 1, activity_type: meeting, is_done: true, due_month: 2024-01-01}
+          - {deal_id: 2, activity_type: meeting, is_done: false, due_month: 2024-01-01}
+          - {deal_id: 3, activity_type: meeting, is_done: true, due_month: 2024-01-01, dq_reason: duplicate_activity_id}
+          - {deal_id: 4, activity_type: follow_up, is_done: true, due_month: 2024-01-01}
+      - input: ref('dim_activity_type')
+        rows:
+          - {activity_type: meeting, activity_type_name: Sales Call 1, is_sales_call: true}
+          - {activity_type: follow_up, activity_type_name: Follow Up Call, is_sales_call: false}
+      - input: ref('dim_month')
+        rows:
+          - {month: 2024-01-01}
+      - input: ref('funnel_steps')
+        rows:
+          - {step_order: 3, funnel_step: Step 2.1, kpi_name: Sales Call 1, stage_id: null}
+    expect:
+      rows:
+        - {month: 2024-01-01, kpi_name: Sales Call 1, funnel_step: Step 2.1, deals_count: 1}
+
+  - name: month_end_report_shows_stage_steps_only_and_empty_cells_as_zero
+    model: rep_deal_stage_distribution_monthly
+    given:
+      - input: ref('rep_data_quality_checks')
+        rows: []
+      - input: ref('fct_deal_stage_month_end')
+        rows:
+          - {deal_id: 1, month: 2024-01-01, stage_id: 1}
+          - {deal_id: 2, month: 2024-01-01, stage_id: 1}
+      - input: ref('dim_month')
+        rows:
+          - {month: 2024-01-01}
+      - input: ref('funnel_steps')
+        rows:
+          - {step_order: 1, funnel_step: Step 1, kpi_name: Lead Generation, stage_id: 1}
+          - {step_order: 2, funnel_step: Step 2, kpi_name: Qualified Lead, stage_id: 2}
+          - {step_order: 3, funnel_step: Step 2.1, kpi_name: Sales Call 1, stage_id: null}
+    expect:
+      rows:
+        - {month: 2024-01-01, kpi_name: Lead Generation, funnel_step: Step 1, deals_count: 2}
+        - {month: 2024-01-01, kpi_name: Qualified Lead, funnel_step: Step 2, deals_count: 0}
+
+  - name: review_port_lists_only_flagged_rows_from_both_sources
+    model: rep_records_for_review
+    given:
+      - input: ref('fct_deal_change')
+        rows:
+          - {deal_id: 1, changed_field: add_time}
+          - {deal_id: 2, changed_field: add_time, dq_reason: multiple_deal_creations}
+      - input: ref('fct_activity')
+        rows:
+          - {activity_id: 10, deal_id: 3}
+          - {activity_id: 11, deal_id: 4, dq_reason: duplicate_activity_id}
+    expect:
+      rows:
+        - {source_table: deal_changes, record_id: null, deal_id: 2, dq_reason: multiple_deal_creations}
+        - {source_table: activity, record_id: 11, deal_id: 4, dq_reason: duplicate_activity_id}
+
+  - name: last_owner_report_keeps_deals_without_an_owner
+    model: rep_deal_last_owner
+    given:
+      - input: ref('rep_data_quality_checks')
+        rows: []
+      - input: ref('dim_deal')
+        rows:
+          - {deal_id: 1, owner_user_id: 8, current_stage_id: 2, deal_status: lost}
+          - {deal_id: 2, owner_user_id: null, current_stage_id: null, deal_status: open}
+      - input: ref('dim_deal_owner')
+        rows:
+          - {deal_id: 1, owner_user_id: 7, valid_from: "2024-01-02 10:00:00", is_current: false}
+          - {deal_id: 1, owner_user_id: 8, valid_from: "2024-01-05 10:00:00", is_current: true}
+      - input: ref('dim_user')
+        rows:
+          - {user_id: 7, user_name: Former Owner}
+          - {user_id: 8, user_name: Last Owner}
+      - input: ref('dim_stage')
+        rows:
+          - {stage_id: 2, kpi_name: Qualified Lead}
+    expect:
+      rows:
+        - {deal_id: 1, owner_user_id: 8, owner_name: Last Owner, owner_since: "2024-01-05 10:00:00", owner_count: 2, current_stage: Qualified Lead, deal_status: lost}
+        - {deal_id: 2, owner_user_id: null, owner_name: null, owner_since: null, owner_count: 0, current_stage: null, deal_status: open}
