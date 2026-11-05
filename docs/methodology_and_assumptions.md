@@ -29,7 +29,7 @@ The requirements don't say when a deal counts, how calls fit with stages, or whi
 
 **The main report, `rep_sales_funnel_monthly`, counts movement:** how many deals entered each stage this month? A deal that jumps from stage 2 to 5 counts in 3, 4 and 5, because it got past them.
 
-**The month-end report, `rep_deal_stage_distribution_monthly`, counts position:** where were the open deals at month end? Calls aren't included, because a call is a one-off event with no month-end state, and this data can't tie a call to a deal.
+**The month-end report, `rep_deal_stage_distribution_monthly`, counts position:** where were the open deals at month end? Calls aren't included, because a call is a one-off event with no month-end state, and too few deal IDs match between calls and stages to rely on.
 
 **Example:** a deal enters stage 1 in May, stage 3 in June, stages 4 and 6 in July and stage 7 in August, and is lost in August.
 

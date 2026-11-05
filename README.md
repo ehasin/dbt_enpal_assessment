@@ -85,7 +85,9 @@ The five that move the numbers. All of them, with the alternatives not chosen, a
 
 Layer notes are in [`models/ods/`](models/ods/README.md), [`models/core/`](models/core/README.md) and [`models/reporting/`](models/reporting/README.md). `dbt docs generate && dbt docs serve` shows the lineage.
 
-# Assignment
+# Original assignment
+
+Kept for reference. To run this project, use [Run it](#run-it) above.
 
 ## Setup
 

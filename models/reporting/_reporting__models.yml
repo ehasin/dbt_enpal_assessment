@@ -127,7 +127,7 @@ models:
     description: >
       The month-end report: estimated open deals in each stage at month end. Counts position. Estimated,
       because the data has no deal status, only lost reasons. Calls aren't included: a call is a one-off
-      event with no month-end state, and this data can't tie a call to a deal.
+      event with no month-end state, and too few deal IDs match between calls and stages to rely on.
     meta:
       layer: reporting
       port: output
@@ -204,8 +204,10 @@ models:
 
   - name: rep_data_quality_checks
     description: >
-      Every check result: whether a month can be trusted, and why a build stopped. A `fail` row stops all three
-      business reports, while this table still builds so the reason stays visible.
+      Results of the checks that run before the reports, and source coverage by month. A `fail` row stops all
+      three business reports, while this table still builds so the reason stays visible. If a source or an
+      earlier model fails, this table can be left from the previous run. Those failures, and the final output
+      comparisons, are in the dbt run results.
     meta:
       layer: reporting
       port: service
@@ -221,7 +223,7 @@ models:
             columns: [check_name, month]
     columns:
       - name: check_name
-        description: What the check proves.
+        description: What the check measures.
         data_type: text
         data_tests: [not_null]
       - name: layer
