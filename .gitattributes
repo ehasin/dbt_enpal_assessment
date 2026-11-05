@@ -1,0 +1,2 @@
+# The loader runs inside a Linux container, so it must keep LF on every platform.
+*.sh text eol=lf

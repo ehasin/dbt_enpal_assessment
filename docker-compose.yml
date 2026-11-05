@@ -1,8 +1,6 @@
-version: '3.8'
-
 services:
   db:
-    image: postgres:latest
+    image: postgres:18.6
     environment:
       POSTGRES_DB: postgres
       POSTGRES_USER: admin
@@ -12,15 +10,20 @@ services:
       - ./raw_data:/raw_data  # Mount raw_data folder to access CSV files
     ports:
       - "5432:5432"
+    healthcheck:
+      # Over TCP on purpose: during first-time setup the server only listens on its local socket.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U admin -d postgres"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
 
   data_loader:
-    image: postgres:latest
+    image: postgres:18.6
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     volumes:
       - ./raw_data:/raw_data
     entrypoint: /bin/bash /raw_data/load_data.sh
     environment:
       PGPASSWORD: admin
-    links:
-      - db
